@@ -1,0 +1,164 @@
+<?php
+require __DIR__ . '/../config/config.php';
+require __DIR__ . '/../src/Auth.php';
+Auth::requerirAdmin();
+?>
+<!doctype html>
+<html lang="ca">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gestió d'usuaris · Espai Cràter</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --lava:#c0392b; --lava-dark:#7b241c; --ember:#e67e22; --ash:#2c3e50; --bg:#f5f3f0; }
+  * { font-family:'Inter',system-ui,sans-serif; }
+  body { background:var(--bg); color:#2b2b2b; }
+  .topbar { background:linear-gradient(120deg,var(--lava-dark),var(--lava) 60%,var(--ember)); color:#fff; box-shadow:0 2px 12px rgba(0,0,0,.15); }
+  .panel { background:#fff; border:none; border-radius:16px; box-shadow:0 4px 20px rgba(0,0,0,.06); }
+  .panel h5 { font-weight:700; color:var(--ash); margin:0 0 1rem 0; display:flex; align-items:center; gap:.5rem; }
+  .panel h5::before { content:""; width:6px; height:20px; border-radius:3px; background:var(--lava); display:inline-block; }
+  .btn-lava { background:var(--lava); color:#fff; font-weight:600; border:none; }
+  .btn-lava:hover { background:var(--lava-dark); color:#fff; }
+  .taula-u { font-size:.9rem; }
+  .taula-u thead th { background:#f3f1ee; font-size:.78rem; text-transform:uppercase; color:#6b6b6b; }
+  .badge-rol-admin { background:#fdece8; color:var(--lava-dark); font-weight:600; }
+  .badge-rol-usuari { background:#e8eef2; color:var(--ash); font-weight:600; }
+  .badge-actiu { background:#e8f8ee; color:#1e8449; }
+  .badge-inactiu { background:#f0f0f0; color:#8a8a8a; }
+</style>
+</head>
+<body>
+
+<nav class="topbar mb-4">
+  <div class="container-fluid py-3 px-4 d-flex justify-content-between align-items-center">
+    <span class="brand h4 mb-0 d-flex align-items-center gap-2">
+      <img src="assets/logo-icona.png" alt="" style="height:30px; filter:brightness(0) invert(1)">
+      Espai Cràter · Gestió d'usuaris
+    </span>
+    <a href="index.php" class="btn btn-light btn-sm fw-semibold">← Dashboard</a>
+  </div>
+</nav>
+
+<div class="container-fluid px-4 pb-5">
+
+  <div class="panel p-4 mb-4">
+    <h5>Crear nou usuari</h5>
+    <div class="row g-3 align-items-end">
+      <div class="col-md-3">
+        <label class="form-label fw-bold" style="font-size:.8rem">Nom d'usuari</label>
+        <input type="text" id="nouUsuari" class="form-control form-control-sm" minlength="3">
+      </div>
+      <div class="col-md-3">
+        <label class="form-label fw-bold" style="font-size:.8rem">Contrasenya</label>
+        <input type="password" id="novaContrasenya" class="form-control form-control-sm" minlength="6">
+      </div>
+      <div class="col-md-2">
+        <label class="form-label fw-bold" style="font-size:.8rem">Rol</label>
+        <select id="nouRol" class="form-select form-select-sm">
+          <option value="usuari">Usuari</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+      <div class="col-md-2">
+        <button id="btnCrear" class="btn btn-lava btn-sm w-100">+ Crear usuari</button>
+      </div>
+    </div>
+    <div id="missatgeCrear" class="mt-2" style="font-size:.85rem"></div>
+    <p class="text-muted mt-2 mb-0" style="font-size:.78rem">
+      No hi ha recuperació de contrasenya per correu. Si algú l'oblida, reinicia-la-hi manualment
+      des de la taula de sota i comunica-l'hi en persona.
+    </p>
+  </div>
+
+  <div class="panel p-4">
+    <h5>Usuaris existents</h5>
+    <div class="table-responsive">
+      <table class="table table-hover taula-u align-middle">
+        <thead>
+          <tr><th>Usuari</th><th>Rol</th><th>Estat</th><th>Creat</th><th>Últim accés</th><th style="min-width:280px">Accions</th></tr>
+        </thead>
+        <tbody id="cosUsuaris"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<script>
+async function json(url, opts) { return (await fetch(url, opts)).json(); }
+async function post(params) {
+  return json('api_usuaris.php', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:new URLSearchParams(params) });
+}
+
+async function carregarUsuaris() {
+  const files = await json('api_usuaris.php?accio=llistar');
+  const cos = document.getElementById('cosUsuaris');
+  cos.innerHTML = files.map(f => `
+    <tr data-id="${f.id}">
+      <td class="fw-semibold">${f.nom_usuari}</td>
+      <td>
+        <select class="form-select form-select-sm d-inline-block w-auto" data-rol>
+          <option value="usuari" ${f.rol==='usuari'?'selected':''}>Usuari</option>
+          <option value="admin" ${f.rol==='admin'?'selected':''}>Admin</option>
+        </select>
+      </td>
+      <td><span class="badge ${f.actiu ? 'badge-actiu' : 'badge-inactiu'}">${f.actiu ? 'Actiu' : 'Inactiu'}</span></td>
+      <td style="font-size:.8rem">${new Date(f.data_creacio).toLocaleDateString('ca')}</td>
+      <td style="font-size:.8rem">${f.ultim_acces ? new Date(f.ultim_acces).toLocaleString('ca') : '—'}</td>
+      <td>
+        <div class="d-flex gap-1 flex-wrap">
+          <input type="password" class="form-control form-control-sm" data-nova-contrasenya placeholder="nova contrasenya" style="width:150px">
+          <button class="btn btn-outline-secondary btn-sm" data-reset>Reiniciar</button>
+          <button class="btn btn-outline-${f.actiu ? 'danger' : 'success'} btn-sm" data-toggle-actiu>${f.actiu ? 'Desactivar' : 'Activar'}</button>
+        </div>
+      </td>
+    </tr>`).join('');
+
+  cos.querySelectorAll('tr').forEach(tr => {
+    const id = tr.dataset.id;
+
+    tr.querySelector('[data-rol]').addEventListener('change', async (e) => {
+      const res = await post({ accio:'canviar_rol', id, rol:e.target.value });
+      if (!res.ok) { alert('Error: ' + (res.error||'?')); carregarUsuaris(); }
+    });
+
+    tr.querySelector('[data-reset]').addEventListener('click', async () => {
+      const contrasenya = tr.querySelector('[data-nova-contrasenya]').value;
+      if (!contrasenya) return alert('Escriu la nova contrasenya.');
+      const res = await post({ accio:'resetejar_contrasenya', id, contrasenya });
+      if (res.ok) { alert('Contrasenya actualitzada.'); tr.querySelector('[data-nova-contrasenya]').value=''; }
+      else alert('Error: ' + (res.error||'?'));
+    });
+
+    tr.querySelector('[data-toggle-actiu]').addEventListener('click', async () => {
+      const actiuActual = tr.querySelector('.badge-actiu') !== null;
+      const res = await post({ accio:'canviar_actiu', id, actiu: actiuActual ? '0' : '1' });
+      if (res.ok) carregarUsuaris();
+      else alert('Error: ' + (res.error||'?'));
+    });
+  });
+}
+
+document.getElementById('btnCrear').addEventListener('click', async () => {
+  const usuari = document.getElementById('nouUsuari').value.trim();
+  const contrasenya = document.getElementById('novaContrasenya').value;
+  const rol = document.getElementById('nouRol').value;
+  const missatge = document.getElementById('missatgeCrear');
+
+  const res = await post({ accio:'crear', usuari, contrasenya, rol });
+  if (res.ok) {
+    missatge.className = 'text-success mt-2'; missatge.textContent = '✓ Usuari creat correctament.';
+    document.getElementById('nouUsuari').value = '';
+    document.getElementById('novaContrasenya').value = '';
+    carregarUsuaris();
+  } else {
+    missatge.className = 'text-danger mt-2'; missatge.textContent = '✗ ' + (res.error || 'Error desconegut');
+  }
+});
+
+carregarUsuaris();
+</script>
+</body>
+</html>

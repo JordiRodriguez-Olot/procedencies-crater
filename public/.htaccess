@@ -1,0 +1,32 @@
+# ============================================================
+# Seguretat bàsica per a l'arrel web de l'aplicació.
+# ============================================================
+
+Options -Indexes
+
+<FilesMatch "\.(sql|log|env|ini)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order deny,allow
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+<IfModule mod_headers.c>
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
+
+# ------------------------------------------------------------
+# RESTRICCIÓ PER IP — nomes xarxa de l'ajuntament (opcional)
+# ------------------------------------------------------------
+# Descomenta i posa-hi la IP pública real de la xarxa de l'ajuntament
+# quan la tinguis confirmada. Deixa-ho comentat mentre proveu l'eina
+# des de fora (per exemple des de casa o amb el mòbil).
+#
+# <RequireAny>
+#     Require ip 203.0.113.0/24
+# </RequireAny>

@@ -1,0 +1,7 @@
+# Configuració amb credencials — mai a Git
+config/config.php
+
+# Logs i temporals
+storage/php-error.log
+storage/tmp/*
+!storage/tmp/.gitkeep
