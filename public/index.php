@@ -5,7 +5,6 @@ Auth::requerirLogin();
 ?>
 <!doctype html>
 <html lang="ca">
-  <!-- TEST DESPLEGAMENT 2026-08-18 -->
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
