@@ -1,5 +1,9 @@
 # Configuració amb credencials — mai a Git
 config/config.php
+config/local.php
+
+# Dumps de dades reals per a proves locals — mai a Git
+database/local/
 
 # Logs i temporals
 storage/php-error.log

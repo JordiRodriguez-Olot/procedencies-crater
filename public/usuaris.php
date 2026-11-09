@@ -3,19 +3,9 @@ require __DIR__ . '/../config/config.php';
 require __DIR__ . '/../src/Auth.php';
 Auth::requerirAdmin();
 ?>
-<!doctype html>
-<html lang="ca">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Gestió d'usuaris · Espai Cràter</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<?php renderCapcalera("Gestió d'usuaris", usuariActual()); ?>
 <style>
   :root { --lava:#c0392b; --lava-dark:#7b241c; --ember:#e67e22; --ash:#2c3e50; --bg:#f5f3f0; }
-  * { font-family:'Inter',system-ui,sans-serif; }
-  body { background:var(--bg); color:#2b2b2b; }
-  .topbar { background:linear-gradient(120deg,var(--lava-dark),var(--lava) 60%,var(--ember)); color:#fff; box-shadow:0 2px 12px rgba(0,0,0,.15); }
   .panel { background:#fff; border:none; border-radius:16px; box-shadow:0 4px 20px rgba(0,0,0,.06); }
   .panel h5 { font-weight:700; color:var(--ash); margin:0 0 1rem 0; display:flex; align-items:center; gap:.5rem; }
   .panel h5::before { content:""; width:6px; height:20px; border-radius:3px; background:var(--lava); display:inline-block; }
@@ -28,20 +18,15 @@ Auth::requerirAdmin();
   .badge-actiu { background:#e8f8ee; color:#1e8449; }
   .badge-inactiu { background:#f0f0f0; color:#8a8a8a; }
 </style>
-</head>
-<body>
-
-<nav class="topbar mb-4">
-  <div class="container-fluid py-3 px-4 d-flex justify-content-between align-items-center">
-    <span class="brand h4 mb-0 d-flex align-items-center gap-2">
-      <img src="assets/logo-icona.png" alt="" style="height:30px; filter:brightness(0) invert(1)">
-      Espai Cràter · Gestió d'usuaris
-    </span>
-    <a href="index.php" class="btn btn-light btn-sm fw-semibold">← Dashboard</a>
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+  <div class="titol-pagina m-0"><h1>Gestió d'usuaris</h1></div>
+  <div class="d-flex gap-2 flex-wrap align-items-center">
+      
   </div>
-</nav>
+</div>
 
-<div class="container-fluid px-4 pb-5">
+
+<div class="container-fluid px-0 pb-5">
 
   <div class="panel p-4 mb-4">
     <h5>Crear nou usuari</h5>
@@ -73,11 +58,14 @@ Auth::requerirAdmin();
   </div>
 
   <div class="panel p-4">
-    <h5>Usuaris existents</h5>
+    <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-2">
+      <h5 class="mb-0">Usuaris existents</h5>
+      <a href="usuaris_ad.php" class="btn btn-outline-primary btn-sm">Cerca a l'Active Directory</a>
+    </div>
     <div class="table-responsive">
       <table class="table table-hover taula-u align-middle">
         <thead>
-          <tr><th>Usuari</th><th>Rol</th><th>Estat</th><th>Creat</th><th>Últim accés</th><th style="min-width:280px">Accions</th></tr>
+          <tr><th>Usuari</th><th>Origen</th><th>Rol</th><th>Estat</th><th>Creat</th><th>Últim accés</th><th style="min-width:280px">Accions</th></tr>
         </thead>
         <tbody id="cosUsuaris"></tbody>
       </table>
@@ -86,7 +74,9 @@ Auth::requerirAdmin();
 
 </div>
 
+<?php renderPeu([], false); ?>
 <script>
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 async function json(url, opts) { return (await fetch(url, opts)).json(); }
 async function post(params) {
   return json('api_usuaris.php', { method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:new URLSearchParams(params) });
@@ -97,7 +87,8 @@ async function carregarUsuaris() {
   const cos = document.getElementById('cosUsuaris');
   cos.innerHTML = files.map(f => `
     <tr data-id="${f.id}">
-      <td class="fw-semibold">${f.nom_usuari}</td>
+      <td class="fw-semibold">${f.nom_usuari}${f.nom && f.nom !== f.nom_usuari ? '<div class="text-muted fw-normal" style="font-size:.78rem">' + esc(f.nom) + '</div>' : ''}</td>
+      <td><span class="badge ${f.origen === 'ad' ? 'badge-rol-admin' : 'badge-rol-usuari'}">${f.origen === 'ad' ? 'Domini' : 'Local'}</span></td>
       <td>
         <select class="form-select form-select-sm d-inline-block w-auto" data-rol>
           <option value="usuari" ${f.rol==='usuari'?'selected':''}>Usuari</option>
@@ -109,8 +100,8 @@ async function carregarUsuaris() {
       <td style="font-size:.8rem">${f.ultim_acces ? new Date(f.ultim_acces).toLocaleString('ca') : '—'}</td>
       <td>
         <div class="d-flex gap-1 flex-wrap">
-          <input type="password" class="form-control form-control-sm" data-nova-contrasenya placeholder="nova contrasenya" style="width:150px">
-          <button class="btn btn-outline-secondary btn-sm" data-reset>Reiniciar</button>
+          ${f.origen === 'ad' ? '' : `<input type="password" class="form-control form-control-sm" data-nova-contrasenya placeholder="nova contrasenya" style="width:150px">
+          <button class="btn btn-outline-secondary btn-sm" data-reset>Reiniciar</button>`}
           <button class="btn btn-outline-${f.actiu ? 'danger' : 'success'} btn-sm" data-toggle-actiu>${f.actiu ? 'Desactivar' : 'Activar'}</button>
         </div>
       </td>
@@ -124,7 +115,7 @@ async function carregarUsuaris() {
       if (!res.ok) { alert('Error: ' + (res.error||'?')); carregarUsuaris(); }
     });
 
-    tr.querySelector('[data-reset]').addEventListener('click', async () => {
+    tr.querySelector('[data-reset]')?.addEventListener('click', async () => {
       const contrasenya = tr.querySelector('[data-nova-contrasenya]').value;
       if (!contrasenya) return alert('Escriu la nova contrasenya.');
       const res = await post({ accio:'resetejar_contrasenya', id, contrasenya });

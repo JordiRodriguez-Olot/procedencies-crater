@@ -95,8 +95,11 @@ CREATE TABLE errors_descartats (
 CREATE TABLE usuaris (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
   nom_usuari VARCHAR(50) NOT NULL UNIQUE,
-  contrasenya_hash VARCHAR(255) NOT NULL,
+  nom VARCHAR(200) NULL,
+  correu VARCHAR(200) NULL,
+  contrasenya_hash VARCHAR(255) NULL, -- NULL als comptes del domini (origen 'ad')
   rol ENUM('admin','usuari') NOT NULL DEFAULT 'usuari',
+  origen ENUM('local','ad') NOT NULL DEFAULT 'local',
   actiu TINYINT(1) NOT NULL DEFAULT 1,
   data_creacio DATETIME DEFAULT CURRENT_TIMESTAMP,
   ultim_acces DATETIME NULL
@@ -196,4 +199,13 @@ CREATE TABLE entrades (
   INDEX idx_comarca (comarca_derivada),
   INDEX idx_manual (es_manual),
   INDEX idx_entrades_cp (codi_postal)
+) ENGINE=InnoDB;
+
+-- Configuració editable des del navegador (Active Directory...). Secrets xifrats.
+CREATE TABLE configuracio (
+  clau VARCHAR(100) NOT NULL PRIMARY KEY,
+  valor TEXT NULL,
+  xifrat TINYINT(1) NOT NULL DEFAULT 0,
+  actualitzat_el DATETIME NULL,
+  actualitzat_per VARCHAR(100) NULL
 ) ENGINE=InnoDB;

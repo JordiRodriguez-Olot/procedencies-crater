@@ -3,22 +3,10 @@ require __DIR__ . '/../config/config.php';
 require __DIR__ . '/../src/Auth.php';
 Auth::requerirLogin();
 ?>
-<!doctype html>
-<html lang="ca">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Mapes de procedència · Espai Cràter</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<?php renderCapcalera('Mapes de procedència', usuariActual()); ?>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
   :root { --lava:#c0392b; --lava-dark:#7b241c; --ember:#e67e22; --ash:#2c3e50; --bg:#f5f3f0; }
-  * { font-family:'Inter',system-ui,sans-serif; }
-  body { background:var(--bg); color:#2b2b2b; }
-  .topbar { background:linear-gradient(120deg,var(--lava-dark),var(--lava) 60%,var(--ember)); color:#fff; box-shadow:0 2px 12px rgba(0,0,0,.15); }
-  .topbar .brand { font-weight:800; letter-spacing:.3px; }
   .panel { background:#fff; border:none; border-radius:16px; box-shadow:0 4px 20px rgba(0,0,0,.06); }
   .form-label.fw-bold { color:var(--ash); font-size:.85rem; text-transform:uppercase; letter-spacing:.4px; }
   .btn-lava { background:var(--lava); color:#fff; font-weight:600; border:none; }
@@ -36,22 +24,15 @@ Auth::requerirLogin();
   .sense-dada { color:#8a8a8a; }
   .avis-carrega { background:#fff8e1; border-left:4px solid var(--ember); border-radius:8px; padding:.7rem 1rem; font-size:.85rem; }
 </style>
-</head>
-<body>
-
-<nav class="topbar mb-4">
-  <div class="container-fluid py-3 px-4 d-flex justify-content-between align-items-center">
-    <span class="brand h4 mb-0 d-flex align-items-center gap-2">
-      <img src="assets/logo-icona.png" alt="" style="height:30px; filter:brightness(0) invert(1)">
-      Espai Cràter · Mapes de procedència
-    </span>
-    <div class="d-flex gap-2">
-      <a href="index.php" class="btn btn-light btn-sm fw-semibold">← Dashboard</a>
-    </div>
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+  <div class="titol-pagina m-0"><h1>Mapes de procedència</h1></div>
+  <div class="d-flex gap-2 flex-wrap align-items-center">
+      
   </div>
-</nav>
+</div>
 
-<div class="container-fluid px-4 pb-5">
+
+<div class="container-fluid px-0 pb-5">
 
   <div class="panel p-4 mb-4">
     <div class="row g-3 align-items-end">
@@ -95,6 +76,8 @@ Auth::requerirLogin();
   </div>
 </div>
 
+<?php renderPeu([], false); ?>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 // ---------------- Configuració ----------------
 const NOMS_MESOS = ['Gen','Feb','Mar','Abr','Mai','Jun','Jul','Ago','Set','Oct','Nov','Des'];

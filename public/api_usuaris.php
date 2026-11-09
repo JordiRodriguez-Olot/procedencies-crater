@@ -14,7 +14,7 @@ function respon($dades): void { echo json_encode($dades, JSON_UNESCAPED_UNICODE)
 switch ($accio) {
 
     case 'llistar':
-        $sql = "SELECT id, nom_usuari, rol, actiu, data_creacio, ultim_acces FROM usuaris ORDER BY nom_usuari";
+        $sql = "SELECT id, nom_usuari, nom, correu, origen, rol, actiu, data_creacio, ultim_acces FROM usuaris ORDER BY nom_usuari";
         respon($pdo->query($sql)->fetchAll());
         break;
 
@@ -48,7 +48,10 @@ switch ($accio) {
         if (strlen($novaContrasenya) < 6) { respon(['error' => 'La contrasenya ha de tenir almenys 6 caràcters.']); break; }
         try {
             $hash = password_hash($novaContrasenya, PASSWORD_DEFAULT);
-            $pdo->prepare('UPDATE usuaris SET contrasenya_hash = ? WHERE id = ?')->execute([$hash, $id]);
+            // Els comptes del domini es validen contra l'AD: no tenen contrasenya local.
+            $afectats = $pdo->prepare("UPDATE usuaris SET contrasenya_hash = ? WHERE id = ? AND origen = 'local'");
+            $afectats->execute([$hash, $id]);
+            if ($afectats->rowCount() === 0) { respon(['error' => 'Aquest compte és del domini: la contrasenya es gestiona a l\'Active Directory.']); break; }
             Registre::afegir($pdo, 'contrasenya_reiniciada', "Contrasenya reiniciada per a l'usuari #$id (no es registra la contrasenya)");
             respon(['ok' => true]);
         } catch (Throwable $e) {

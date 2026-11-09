@@ -3,19 +3,9 @@ require __DIR__ . '/../config/config.php';
 require __DIR__ . '/../src/Auth.php';
 Auth::requerirLogin();
 ?>
-<!doctype html>
-<html lang="ca">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Neteja de dades · Espai Cràter</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<?php renderCapcalera('Neteja de dades', usuariActual()); ?>
 <style>
   :root { --lava:#c0392b; --lava-dark:#7b241c; --ember:#e67e22; --ash:#2c3e50; --bg:#f5f3f0; --green:#1e8449; }
-  * { font-family:'Inter',system-ui,sans-serif; }
-  body { background:var(--bg); color:#2b2b2b; }
-  .topbar { background:linear-gradient(120deg,var(--lava-dark),var(--lava) 60%,var(--ember)); color:#fff; box-shadow:0 2px 12px rgba(0,0,0,.15); }
   .panel { background:#fff; border:none; border-radius:16px; box-shadow:0 4px 20px rgba(0,0,0,.06); }
   .panel h5 { font-weight:700; color:var(--ash); margin:0 0 .3rem 0; display:flex; align-items:center; gap:.5rem; }
   .panel h5::before { content:""; width:6px; height:20px; border-radius:3px; background:var(--lava); display:inline-block; }
@@ -35,20 +25,15 @@ Auth::requerirLogin();
   .badge-tipus-total { background:#fdecea; color:#dc3545; font-weight:700; }
   .form-label.fw-bold { color:var(--ash); font-size:.8rem; text-transform:uppercase; letter-spacing:.4px; }
 </style>
-</head>
-<body>
-
-<nav class="topbar mb-4">
-  <div class="container-fluid py-3 px-4 d-flex justify-content-between align-items-center">
-    <span class="brand h4 mb-0 d-flex align-items-center gap-2">
-      <img src="assets/logo-icona.png" alt="" style="height:30px; filter:brightness(0) invert(1)">
-      Espai Cràter · Neteja de dades
-    </span>
-    <a href="index.php" class="btn btn-light btn-sm fw-semibold">← Dashboard</a>
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+  <div class="titol-pagina m-0"><h1>Neteja de dades</h1></div>
+  <div class="d-flex gap-2 flex-wrap align-items-center">
+      
   </div>
-</nav>
+</div>
 
-<div class="container-fluid px-4 pb-5" style="max-width:980px">
+
+<div class="container-fluid px-0 pb-5" style="max-width:980px">
 
   <div class="panel p-3 mb-4">
     <p class="mb-0 text-muted" style="font-size:.9rem">
@@ -144,6 +129,7 @@ Auth::requerirLogin();
 
 </div>
 
+<?php renderPeu([], false); ?>
 <script>
 async function json(url, opts) { return (await fetch(url, opts)).json(); }
 async function post(url, params) {

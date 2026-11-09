@@ -79,22 +79,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['pas'] ?? '') === 'confirma
     }
 }
 ?>
-<!doctype html>
-<html lang="ca">
-<head>
-<meta charset="utf-8">
-<title>Importar dades - Espai Cràter</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<?php renderCapcalera('Importar dades', usuariActual()); ?>
 <style>
   :root { --lava:#c0392b; --lava-dark:#7b241c; --ember:#e67e22; }
-  body { font-family:'Inter',system-ui,sans-serif; background:#f5f3f0; }
   .btn-lava { background:var(--lava); color:#fff; font-weight:600; border:none; }
   .btn-lava:hover { background:var(--lava-dark); color:#fff; }
   .avis-dup { background:#fff8e1; border-left:4px solid var(--ember); border-radius:8px; padding:1rem; }
 </style>
-</head>
-<body class="bg-light">
-<div class="container py-5" style="max-width:640px">
+
+<div class="container py-3" style="max-width:640px">
   <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="h3 mb-0">Importar Excel de Clorian</h1>
     <a href="importacions.php" class="btn btn-outline-secondary btn-sm">📋 Historial d'importacions</a>
@@ -152,5 +145,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['pas'] ?? '') === 'confirma
     </form>
   <?php endif; ?>
 </div>
-</body>
-</html>
+<?php renderPeu(); ?>

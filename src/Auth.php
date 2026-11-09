@@ -1,20 +1,21 @@
 <?php
 
+require_once __DIR__ . '/../lib/arrencada.php';
+
 /**
- * Gestió d'autenticació senzilla amb sessions natives de PHP.
+ * Capa de compatibilitat sobre lib/auth.php (plantilla): les pàgines i les
+ * APIs de crater continuen cridant Auth::requerirLogin(), Auth::esAdmin()...
+ * però la sessió, els usuaris (locals i de l'Active Directory) i els rols
+ * viuen a lib/.
  *
- * Pensada per a un ús intern (intranet de l'ajuntament): no hi ha
- * recuperació de contrasenya per correu (no hi ha servidor de correu
- * connectat), ni verificació d'email. Si algú oblida la contrasenya,
- * un administrador la reinicia manualment des de "Gestió d'usuaris".
- *
- * Dos rols: 'admin' i 'usuari'. La majoria de l'aplicació no en
- * distingeix (només protegeix l'accés general), a excepció de la
- * gestió d'usuaris i l'esborrat total de dades, exclusius d'admin.
- *
- * Inclou dues proteccions bàsiques:
- *  - Bloqueig temporal després de diversos intents de login fallits.
+ * Es manté el que ja feia crater:
+ *  - Bloqueig temporal després de diversos intents de login fallits
+ *    (taula intents_login).
  *  - Caducitat de sessió per inactivitat.
+ *
+ * Dos rols: 'admin' i 'usuari'. La majoria de l'aplicació no en distingeix
+ * (només protegeix l'accés general), a excepció de la gestió d'usuaris,
+ * la configuració i l'esborrat total de dades, exclusius d'admin.
  */
 class Auth
 {
@@ -27,9 +28,7 @@ class Auth
 
     public static function iniciar(): void
     {
-        if (session_status() === PHP_SESSION_NONE) {
-            session_start();
-        }
+        iniciaSessio();
     }
 
     /**
@@ -48,71 +47,62 @@ class Auth
         $stmt->execute([$usuari, self::FINESTRA_INTENTS_MINUTS]);
         $r = $stmt->fetch();
 
-        if (!$r || (int)$r['total'] < self::LLINDAR_INTENTS) {
+        if (!$r || (int) $r['total'] < self::LLINDAR_INTENTS) {
             return null;
         }
 
         $minutsTranscorreguts = (time() - strtotime($r['primer'])) / 60;
         $restants = self::FINESTRA_INTENTS_MINUTS - $minutsTranscorreguts;
-        return $restants > 0 ? (int)ceil($restants) : null;
+        return $restants > 0 ? (int) ceil($restants) : null;
     }
 
     private static function registrarIntent(PDO $pdo, string $usuari, bool $exit): void
     {
         $ip = $_SERVER['REMOTE_ADDR'] ?? null;
         $pdo->prepare('INSERT INTO intents_login (nom_usuari, ip, exit_) VALUES (?, ?, ?)')
-            ->execute([$usuari, $ip, $exit ? 1 : 0]);
+            ->execute([mb_substr($usuari, 0, 50), $ip, $exit ? 1 : 0]);
 
         // Neteja d'intents antics (manteniment oportunista, sense cron)
         $pdo->exec("DELETE FROM intents_login WHERE data_intent < (NOW() - INTERVAL 1 DAY)");
     }
 
     /**
+     * Valida usuari i contrasenya contra la BD (comptes locals) o contra
+     * l'Active Directory (comptes amb origen 'ad'), i obre la sessió.
+     *
      * @return array{ok: bool, error: ?string} 'error' inclou el missatge
      *  a mostrar si ok=false (ja sigui per bloqueig o credencials errònies).
      */
     public static function intentarLogin(PDO $pdo, string $usuari, string $contrasenya): array
     {
-        self::iniciar();
+        iniciaSessio();
 
         $minutsRestants = self::minutsBloquejat($pdo, $usuari);
         if ($minutsRestants !== null) {
             return ['ok' => false, 'error' => "Massa intents fallits. Torna-ho a provar d'aquí a {$minutsRestants} minut(s)."];
         }
 
-        $stmt = $pdo->prepare('SELECT id, nom_usuari, contrasenya_hash, rol, actiu FROM usuaris WHERE nom_usuari = ?');
-        $stmt->execute([$usuari]);
-        $u = $stmt->fetch();
-
-        if (!$u || !(int)$u['actiu'] || !password_verify($contrasenya, $u['contrasenya_hash'])) {
+        try {
+            $u = autentica($usuari, $contrasenya);
+        } catch (PDOException $e) {
+            // Abans que RuntimeException: mai ha d'arribar SQL a l'usuari.
+            error_log((string) $e);
+            return ['ok' => false, 'error' => "No s'ha pogut iniciar la sessió. Avisa el servei d'informàtica."];
+        } catch (RuntimeException $e) {
             self::registrarIntent($pdo, $usuari, false);
-            return ['ok' => false, 'error' => 'Usuari o contrasenya incorrectes.'];
+            auditoria('login_fallit', null, mb_substr($usuari, 0, 50));
+            return ['ok' => false, 'error' => $e->getMessage()];
         }
 
         self::registrarIntent($pdo, $usuari, true);
-
-        // Prevenció bàsica contra fixació de sessió
-        session_regenerate_id(true);
-
-        $_SESSION['usuari_id'] = (int)$u['id'];
-        $_SESSION['usuari_nom'] = $u['nom_usuari'];
-        $_SESSION['usuari_rol'] = $u['rol'];
-        $_SESSION['ultim_moviment'] = time();
-
-        $pdo->prepare('UPDATE usuaris SET ultim_acces = NOW() WHERE id = ?')->execute([$u['id']]);
+        estableixSessioUsuari($u, (string) $u['origen']);
 
         return ['ok' => true, 'error' => null];
     }
 
     public static function logout(): void
     {
-        self::iniciar();
-        $_SESSION = [];
-        if (ini_get('session.use_cookies')) {
-            $params = session_get_cookie_params();
-            setcookie(session_name(), '', time() - 42000, $params['path'], $params['domain'], $params['secure'], $params['httponly']);
-        }
-        session_destroy();
+        tancaSessio();
     }
 
     /**
@@ -121,14 +111,13 @@ class Auth
      */
     public static function esLogat(): bool
     {
-        self::iniciar();
-        if (!isset($_SESSION['usuari_id'])) {
+        iniciaSessio();
+        $teSessio = isset($_SESSION['usuari_id']);
+        if ($teSessio && (time() - (int) ($_SESSION['ultim_moviment'] ?? time())) > self::TIMEOUT_INACTIVITAT_SEGONS) {
+            self::logout();
             return false;
         }
-
-        $ultimMoviment = $_SESSION['ultim_moviment'] ?? time();
-        if ((time() - $ultimMoviment) > self::TIMEOUT_INACTIVITAT_SEGONS) {
-            self::logout();
+        if (usuariActual() === null) {
             return false;
         }
 
@@ -136,34 +125,38 @@ class Auth
         return true;
     }
 
+    public static function usuari(): ?array
+    {
+        return self::esLogat() ? usuariActual() : null;
+    }
+
     public static function esAdmin(): bool
     {
-        self::iniciar();
-        return self::esLogat() && ($_SESSION['usuari_rol'] ?? '') === 'admin';
+        return teRol(self::usuari(), 'admin');
     }
 
     public static function usuariId(): ?int
     {
-        self::iniciar();
-        return $_SESSION['usuari_id'] ?? null;
+        iniciaSessio();
+        return isset($_SESSION['usuari_id']) ? (int) $_SESSION['usuari_id'] : null;
     }
 
     public static function nomUsuari(): ?string
     {
-        self::iniciar();
-        return $_SESSION['usuari_nom'] ?? null;
+        $u = self::usuari();
+        return $u === null ? null : (string) $u['usuari'];
     }
 
     public static function rol(): ?string
     {
-        self::iniciar();
-        return $_SESSION['usuari_rol'] ?? null;
+        $u = self::usuari();
+        return $u === null ? null : (string) $u['rol'];
     }
 
     /** Per a pàgines HTML: redirigeix a login si no hi ha sessió activa */
     public static function requerirLogin(): void
     {
-        self::iniciar();
+        iniciaSessio();
         $teniaSessio = isset($_SESSION['usuari_id']);
         if (!self::esLogat()) {
             $desti = $_SERVER['REQUEST_URI'] ?? 'index.php';
@@ -186,7 +179,6 @@ class Auth
     /** Per a endpoints API: retorna un JSON 401 en lloc de redirigir */
     public static function requerirLoginApi(): void
     {
-        self::iniciar();
         if (!self::esLogat()) {
             http_response_code(401);
             header('Content-Type: application/json; charset=utf-8');

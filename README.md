@@ -6,15 +6,18 @@ Clorian (Taquilla, Online, CGR).
 
 ## Requisits
 
-- Laragon (Windows) amb PHP 8.1+ i MySQL/MariaDB
-- Extensions PHP: `pdo_mysql`, `zip`, `simplexml` (totes incloses per
-  defecte a Laragon)
+- XAMPP (Windows) amb PHP 8.1+ i MySQL/MariaDB
+- Extensions PHP: `pdo_mysql`, `zip`, `simplexml`, `openssl`, `mbstring` i,
+  per al login amb Active Directory, `ldap` (a XAMPP cal descomentar
+  `extension=ldap` a `C:\xampp\php\php.ini` i reiniciar Apache). Les
+  primeres van incloses per
+  defecte a XAMPP)
 - **No cal Composer** — el lector d'Excel (`SimpleXlsxReader`) és natiu,
   pensat per evitar els problemes de SSL del proxy de l'ajuntament.
 
 ## Instal·lació (primer cop)
 
-1. Copia la carpeta `crater-app` a `C:\laragon\www\`.
+1. Copia la carpeta a `C:\xampp\htdocs\crater_app`.
 2. Crea la base de dades i carrega l'esquema:
    ```
    mysql -u root --default-character-set=utf8mb4 -e "CREATE DATABASE crater_procedencies CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci"
@@ -25,11 +28,46 @@ Clorian (Taquilla, Online, CGR).
    mysql -u root --default-character-set=utf8mb4 crater_procedencies < database/seed_grups_productes.sql
    ```
 3. Revisa `config/config.php` si el teu usuari/contrasenya de MySQL no és
-   el `root` sense contrasenya per defecte de Laragon.
-4. Obre `http://crater-app.test/crear_primer_admin.php` al navegador i
+   el `root` sense contrasenya per defecte de XAMPP. Copia
+   `config/local.example.php` com a `config/local.php` i hi poses una
+   `clau_xifratge` pròpia (la fa servir la pàgina Configuració per xifrar
+   la contrasenya del compte de consulta de l'AD).
+4. Obre `http://crater.localhost/crear_primer_admin.php` (VirtualHost, vegeu sota) al navegador i
    crea el primer usuari administrador. **Un cop creat, esborra aquest
    fitxer o restringeix-hi l'accés** (deixar de banda de seguretat).
-5. Ja pots iniciar sessió a `http://crater-app.test/login.php`.
+5. Ja pots iniciar sessió a `http://crater.localhost/login.php`.
+
+### VirtualHost a XAMPP
+
+`C:\xampp\apache\conf\extra\httpd-vhosts.conf`:
+```
+<VirtualHost *:80>
+    ServerName crater.localhost
+    DocumentRoot "C:/xampp/htdocs/crater_app/public"
+    <Directory "C:/xampp/htdocs/crater_app/public">
+        AllowOverride All
+        Require all granted
+    </Directory>
+</VirtualHost>
+```
+(`*.localhost` ja resol a 127.0.0.1 als navegadors moderns; si no, afegeix-lo a `hosts`.)
+
+### Active Directory
+
+El login accepta comptes **locals** i comptes **del domini** (columna
+`usuaris.origen`). La integració ve de la plantilla d'apps corporatives
+(`lib/ldap.php`, `lib/auth.php`):
+
+1. Aplica la migració: `mysql -u root --default-character-set=utf8mb4 crater_procedencies < database/migracio_ad.sql`
+   (idempotent; els usuaris actuals queden com a locals).
+2. Entra com a administrador i ves a **Configuració** (menú d'usuari, a dalt
+   a la dreta): servidor, seguretat, domini UPN, DN base, compte de consulta
+   i, opcionalment, grup d'administradors. Fes **Prova la connexió**.
+3. A **Gestió d'usuaris → Cerca a l'Active Directory** dona d'alta els
+   comptes. Entren amb la contrasenya del domini; no tenen contrasenya local.
+
+Atenció: l'AD configurat en local és el de producció. No facis logins
+fallits repetits amb un usuari real (pot bloquejar-ne el compte).
 
 ### Actualitzant una instal·lació existent (afegir el login)
 
@@ -80,6 +118,8 @@ n'hi ha prou amb `schema.sql`):
 - `migracio_neteja.sql` — neteja de dades (parcial/total) + auditoria
 - `migracio_login_intents.sql` — bloqueig per intents de login fallits
 - `migracio_registre_activitat.sql` — registre general d'activitat/auditoria
+- `migracio_ad.sql` — login amb Active Directory (columnes nom/correu/origen,
+  taula `configuracio`)
 - `migracio_completa.sql` — combina TOTES les migracions anteriors en
   un sol fitxer (útil per posar al dia una instal·lació molt antiga
   d'un cop; per a instal·lacions noves, `schema.sql` ja ho porta tot)
@@ -156,7 +196,10 @@ n'hi ha prou amb `schema.sql`):
 
 ```
 crater-app/
-├── config/config.php          Connexió a la base de dades
+├── config/config.php          Connexió a la base de dades (gitignored)
+├── config/app.php             Configuració de l'app: menú, rols, CSP (versionat)
+├── config/local.php           Clau de xifratge de l'entorn (gitignored)
+├── lib/                       Mòduls de la plantilla (AD, sessió, capçalera/peu, config)
 ├── database/                  Esquema i migracions SQL
 ├── src/                       Classes PHP (importadors, lector d'Excel, Auth)
 ├── storage/tmp/                Fitxers temporals durant la importació (no accessible via web)

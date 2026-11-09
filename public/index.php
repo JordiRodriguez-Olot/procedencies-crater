@@ -3,30 +3,13 @@ require __DIR__ . '/../config/config.php';
 require __DIR__ . '/../src/Auth.php';
 Auth::requerirLogin();
 ?>
-<!doctype html>
-<html lang="ca">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Espai Cràter · Procedències</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+<?php renderCapcalera('Procedències', usuariActual()); ?>
 <style>
   :root {
     --lava:#c0392b; --lava-dark:#7b241c; --ember:#e67e22;
     --ash:#2c3e50; --smoke:#34495e; --bg:#f5f3f0; --card:#ffffff;
   }
-  * { font-family:'Inter',system-ui,sans-serif; }
-  body { background:var(--bg); color:#2b2b2b; }
 
-  .topbar {
-    background:linear-gradient(120deg,var(--lava-dark),var(--lava) 60%,var(--ember));
-    color:#fff; box-shadow:0 2px 12px rgba(0,0,0,.15);
-  }
-  .topbar .brand { font-weight:800; letter-spacing:.3px; }
 
   .panel { background:var(--card); border:none; border-radius:16px; box-shadow:0 4px 20px rgba(0,0,0,.06); }
   .panel h5 { font-weight:700; color:var(--ash); margin:0; display:flex; align-items:center; gap:.5rem; }
@@ -94,40 +77,19 @@ Auth::requerirLogin();
   .comp-delta.baixa { background:#fdecea; color:var(--lava); }
   .comp-delta.igual { background:#f0f0f0; color:#7a7a7a; }
 </style>
-</head>
-<body>
-
-<nav class="topbar mb-4">
-  <div class="container-fluid py-3 px-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
-    <span class="brand h4 mb-0 d-flex align-items-center gap-2">
-      <img src="assets/logo-icona.png" alt="" style="height:34px; filter:brightness(0) invert(1)">
-      Espai Cràter · Procedències
-    </span>
-    <div class="d-flex gap-2 flex-wrap align-items-center">
+<div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+  <div class="titol-pagina m-0"><h1>Procedències</h1></div>
+  <div class="d-flex gap-2 flex-wrap align-items-center">
       <div class="dropdown">
-        <button class="btn btn-light btn-sm fw-semibold dropdown-toggle" data-bs-toggle="dropdown">⬇ Exportar</button>
+        <button class="btn btn-outline-primary btn-sm fw-semibold dropdown-toggle" data-bs-toggle="dropdown">⬇ Exportar</button>
         <ul class="dropdown-menu dropdown-menu-end">
           <li><a class="dropdown-item" href="#" id="exportarExcel">📊 Excel (.xls)</a></li>
           <li><a class="dropdown-item" href="#" id="exportarPdf">📄 PDF</a></li>
         </ul>
       </div>
-      <a href="productes.php" class="btn btn-light btn-sm fw-semibold">🏷️ Productes</a>
-      <a href="mapes.php" class="btn btn-light btn-sm fw-semibold">🗺️ Mapes</a>
-      <a href="errors.php" class="btn btn-light btn-sm fw-semibold">⚠ Gestió d'errors</a>
-      <a href="importacions.php" class="btn btn-light btn-sm fw-semibold">📋 Importacions</a>
-      <a href="import.php" class="btn btn-light btn-sm fw-semibold">+ Importar Excel</a>
-      <a href="neteja_dades.php" class="btn btn-light btn-sm fw-semibold">🧹 Neteja de dades</a>
-      <a href="informes.php" class="btn btn-light btn-sm fw-semibold">📈 Informes</a>
-      <?php if (Auth::esAdmin()): ?>
-        <a href="usuaris.php" class="btn btn-light btn-sm fw-semibold">👥 Usuaris</a>
-      <?php endif; ?>
-      <span class="text-white ms-2" style="font-size:.85rem">
-        <?= htmlspecialchars(Auth::nomUsuari()) ?> (<?= htmlspecialchars(Auth::rol()) ?>)
-      </span>
-      <a href="logout.php" class="btn btn-outline-light btn-sm">Sortir</a>
-    </div>
   </div>
-</nav>
+</div>
+
 
 <div id="avisFiltre" class="avis-filtre d-none">
   <span class="avis-icona">🔎</span>
@@ -135,7 +97,7 @@ Auth::requerirLogin();
   <button id="avisFiltreNetejar" class="avis-netejar" title="Treure tots els filtres">Netejar ✕</button>
 </div>
 
-<div class="container-fluid px-4 pb-5">
+<div class="container-fluid px-0 pb-5">
 
   <div class="row g-3 mb-4">
     <div class="col-6 col-lg-3"><div class="kpi lava"><div class="label">Total visitants</div><div class="value" id="kpiTotal">–</div></div></div>
@@ -284,7 +246,10 @@ Auth::requerirLogin();
   </div>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<?php renderPeu([], false); ?>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
 <script>
 const charts = {};
 const TOP_N = 12;
