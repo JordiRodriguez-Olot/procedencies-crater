@@ -24,6 +24,9 @@ function carregaUsuari(int $id): ?array
     if (trim((string) ($usuari['nom'] ?? '')) === '') {
         $usuari['nom'] = $usuari['nom_usuari'];
     }
+    // Robustesa: sense la columna `origen` (BD sense migrar) o amb el camp buit,
+    // el compte es tracta com a local, perquè el login amb contrasenya no es trenqui.
+    $usuari['origen'] = ($usuari['origen'] ?? '') === 'ad' ? 'ad' : 'local';
     $usuari['departaments'] = []; // crater no treballa per departaments
 
     return $usuari;
