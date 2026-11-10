@@ -33,11 +33,11 @@ Auth::requerirAdmin();
     <div class="row g-3 align-items-end">
       <div class="col-md-3">
         <label class="form-label fw-bold" style="font-size:.8rem">Nom d'usuari</label>
-        <input type="text" id="nouUsuari" class="form-control form-control-sm" minlength="3">
+        <input type="text" id="nouUsuari" class="form-control form-control-sm" minlength="3" autocomplete="off" autocapitalize="off" spellcheck="false">
       </div>
       <div class="col-md-3">
         <label class="form-label fw-bold" style="font-size:.8rem">Contrasenya</label>
-        <input type="password" id="novaContrasenya" class="form-control form-control-sm" minlength="6">
+        <input type="password" id="novaContrasenya" class="form-control form-control-sm" minlength="6" autocomplete="new-password">
       </div>
       <div class="col-md-2">
         <label class="form-label fw-bold" style="font-size:.8rem">Rol</label>
@@ -87,7 +87,7 @@ async function carregarUsuaris() {
   const cos = document.getElementById('cosUsuaris');
   cos.innerHTML = files.map(f => `
     <tr data-id="${f.id}">
-      <td class="fw-semibold">${f.nom_usuari}${f.nom && f.nom !== f.nom_usuari ? '<div class="text-muted fw-normal" style="font-size:.78rem">' + esc(f.nom) + '</div>' : ''}</td>
+      <td class="fw-semibold">${esc(f.nom_usuari)}${f.nom && f.nom !== f.nom_usuari ? '<div class="text-muted fw-normal" style="font-size:.78rem">' + esc(f.nom) + '</div>' : ''}</td>
       <td><span class="badge ${f.origen === 'ad' ? 'badge-rol-admin' : 'badge-rol-usuari'}">${f.origen === 'ad' ? 'Domini' : 'Local'}</span></td>
       <td>
         <select class="form-select form-select-sm d-inline-block w-auto" data-rol>
@@ -103,6 +103,7 @@ async function carregarUsuaris() {
           ${f.origen === 'ad' ? '' : `<input type="password" class="form-control form-control-sm" data-nova-contrasenya placeholder="nova contrasenya" style="width:150px">
           <button class="btn btn-outline-secondary btn-sm" data-reset>Reiniciar</button>`}
           <button class="btn btn-outline-${f.actiu ? 'danger' : 'success'} btn-sm" data-toggle-actiu>${f.actiu ? 'Desactivar' : 'Activar'}</button>
+          <button class="btn btn-danger btn-sm" data-eliminar>Eliminar</button>
         </div>
       </td>
     </tr>`).join('');
@@ -126,6 +127,14 @@ async function carregarUsuaris() {
     tr.querySelector('[data-toggle-actiu]').addEventListener('click', async () => {
       const actiuActual = tr.querySelector('.badge-actiu') !== null;
       const res = await post({ accio:'canviar_actiu', id, actiu: actiuActual ? '0' : '1' });
+      if (res.ok) carregarUsuaris();
+      else alert('Error: ' + (res.error||'?'));
+    });
+
+    tr.querySelector('[data-eliminar]').addEventListener('click', async () => {
+      const nom = tr.querySelector('td').firstChild.textContent.trim();
+      if (!confirm('Eliminar definitivament l\'usuari "' + nom + '"?\n\nAquesta acció no es pot desfer. Si només vols impedir-li l\'accés, és millor desactivar-lo.')) return;
+      const res = await post({ accio:'eliminar', id });
       if (res.ok) carregarUsuaris();
       else alert('Error: ' + (res.error||'?'));
     });

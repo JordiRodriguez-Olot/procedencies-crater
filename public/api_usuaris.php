@@ -93,6 +93,28 @@ switch ($accio) {
         }
         break;
 
+    // Elimina definitivament un compte. L'historial es conserva (nom_usuari desnormalitzat al registre).
+    case 'eliminar':
+        if ($_SERVER['REQUEST_METHOD'] !== 'POST') { http_response_code(405); respon(['error' => 'Cal POST']); break; }
+        $id = (int)($_POST['id'] ?? 0);
+        if ($id === Auth::usuariId()) { respon(['error' => 'No et pots eliminar a tu mateix.']); break; }
+        try {
+            $q = $pdo->prepare('SELECT nom_usuari, rol, actiu FROM usuaris WHERE id = ?');
+            $q->execute([$id]);
+            $u = $q->fetch();
+            if (!$u) { respon(['error' => 'L\'usuari no existeix.']); break; }
+            if ($u['rol'] === 'admin' && $u['actiu']) {
+                $n = (int)$pdo->query("SELECT COUNT(*) FROM usuaris WHERE rol = 'admin' AND actiu = 1")->fetchColumn();
+                if ($n <= 1) { respon(['error' => 'No es pot eliminar l\'últim administrador actiu.']); break; }
+            }
+            Registre::afegir($pdo, 'usuari_eliminat', 'Usuari "' . $u['nom_usuari'] . '" (#' . $id . ') eliminat');
+            $pdo->prepare('DELETE FROM usuaris WHERE id = ?')->execute([$id]);
+            respon(['ok' => true]);
+        } catch (Throwable $e) {
+            http_response_code(500); respon(['error' => $e->getMessage()]);
+        }
+        break;
+
     default:
         http_response_code(400);
         respon(['error' => 'Acció desconeguda']);
