@@ -2,6 +2,8 @@
 require __DIR__ . '/../config/config.php';
 require __DIR__ . '/../src/Auth.php';
 require __DIR__ . '/../src/Registre.php';
+require __DIR__ . '/../src/Importer.php';
+require __DIR__ . '/../src/ControlQualitat.php';
 Auth::requerirLoginApi();
 
 header('Content-Type: application/json; charset=utf-8');
@@ -25,6 +27,11 @@ switch ($accio) {
                          i.data_importacio, c.nom, c.codi
                 ORDER BY i.data_importacio DESC";
         respon($pdo->query($sql)->fetchAll());
+        break;
+
+    // Quadre mes × canal: mesos que falten, desviacions i importacions repetides
+    case 'control':
+        respon((new ControlQualitat($pdo, new Importer($pdo)))->controlMensual());
         break;
 
     case 'desfer':

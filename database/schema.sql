@@ -152,7 +152,9 @@ CREATE TABLE importacions (
   data_visita_inici DATE NULL,
   data_visita_fi DATE NULL,
   files_importades INT UNSIGNED DEFAULT 0,
+  signatura CHAR(64) NULL,           -- empremta del contingut (detecta fitxers pujats dos cops)
   data_importacio DATETIME DEFAULT CURRENT_TIMESTAMP,
+  INDEX idx_importacions_signatura (signatura),
   FOREIGN KEY (canal_id) REFERENCES canals(id)
 ) ENGINE=InnoDB;
 

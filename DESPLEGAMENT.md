@@ -17,6 +17,9 @@ compatibles amb el codi antic i es poden repetir sense efectes.
 2. `database/migracio_ad.sql` — afegeix `nom`, `correu`, `origen` a `usuaris`, deixa
    `contrasenya_hash` com a NULL-able i crea la taula `configuracio`.
 3. Comprova: `SELECT id, nom_usuari, rol, origen FROM usuaris;` → `admin` i `sau.crater`, origen `local`.
+4. `database/migracio_control.sql` — afegeix `importacions.signatura` (control de càrrega:
+   detecta el mateix fitxer pujat dos cops). Idempotent; sense ella l'app funciona igual,
+   però no detecta fitxers repetits.
 
 ## 2. Codi
 ```
