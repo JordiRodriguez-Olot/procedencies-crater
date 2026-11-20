@@ -46,3 +46,10 @@ git push origin main      # Plesk desplega en rebre el push
 ## Tornar enrere
 `git revert <commit>` i push. Els canvis de BD són additius i el codi antic els ignora,
 així que no cal desfer-los.
+
+## Historial de desplegaments
+| Data | Què | Notes |
+|---|---|---|
+| 2026-11-10 | Mòduls d'AD i vistes corporatives de plantilla; eliminar usuaris; login robust | Migracions `migracio_neteja.sql` i `migracio_ad.sql` |
+| 2026-11-20 | Importació en dos passos, correccions proposades i control de càrrega mensual | Migració `migracio_control.sql` |
+| 2026-11-20 | Càrrega inicial de dades (Excel unificat Taquilla + Online + CGR) | 23.257 files, 172.729 pax, 03/2022–10/2026, verificada. Còpia prèvia a `bkp_entrades_carrega` i `bkp_importacions_carrega` (esborrar-les quan es validi) |
