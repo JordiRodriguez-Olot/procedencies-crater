@@ -1,6 +1,7 @@
 <?php
 require __DIR__ . '/../config/config.php';
 require __DIR__ . '/../src/Auth.php';
+require __DIR__ . '/../src/Ajuda.php';
 Auth::requerirLogin();
 ?>
 <?php renderCapcalera('Neteja de dades', usuariActual()); ?>
@@ -32,6 +33,8 @@ Auth::requerirLogin();
   </div>
 </div>
 
+
+<?php renderAjuda('neteja_dades'); ?>
 
 <div class="container-fluid px-0 pb-5" style="max-width:980px">
 

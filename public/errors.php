@@ -1,6 +1,7 @@
 <?php
 require __DIR__ . '/../config/config.php';
 require __DIR__ . '/../src/Auth.php';
+require __DIR__ . '/../src/Ajuda.php';
 Auth::requerirLogin();
 ?>
 <?php renderCapcalera("Gestió d'errors", usuariActual()); ?>
@@ -41,14 +42,9 @@ Auth::requerirLogin();
 </div>
 
 
-<div class="container-fluid px-0 pb-5">
+<?php renderAjuda('errors'); ?>
 
-  <div class="panel p-3 mb-4">
-    <p class="mb-0 text-muted" style="font-size:.9rem">
-      Cada categoria mostra només el que cal per resoldre-la. Quan el sistema pot deduir el valor correcte,
-      el proposa i n'hi ha prou amb <b>un clic verd</b> per aplicar-lo.
-    </p>
-  </div>
+<div class="container-fluid px-0 pb-5">
 
   <div class="row g-3 mb-4" id="categories"></div>
 
@@ -122,6 +118,7 @@ Auth::requerirLogin();
       <h5 class="mb-0" id="detallTitol">Detall</h5>
       <span class="pill-info" id="detallComptador"></span>
     </div>
+    <div class="app-ajuda-consells mb-3" id="detallAjuda" style="font-size:.88rem"></div>
     <div class="table-responsive" style="max-height:60vh; overflow:auto">
       <table class="table table-hover taula-err align-middle">
         <thead id="detallCap"></thead>
@@ -135,12 +132,24 @@ Auth::requerirLogin();
 <?php renderPeu([], false); ?>
 <script>
 const CATS = {
-  pais_buit:    { titol:'País buit',              ajuda:'Entrades sense procedència' },
-  cp_buit:      { titol:'CP buit (Espanya)',      ajuda:'Entrades espanyoles sense codi postal' },
-  cp_format:    { titol:'CP mal format',          ajuda:'El codi postal no té 5 dígits' },
-  provincia_no: { titol:'Província no assignada', ajuda:'CP vàlid sense província' },
-  comarca_no:   { titol:'Comarca no assignada',   ajuda:'CP català sense comarca' },
-  dup_escolar:  { titol:'Possibles duplicats escolars', ajuda:'Grups probablement comptats dues vegades' },
+  pais_buit:    { titol:'País buit',              ajuda:'Entrades sense procedència',
+    que:'La reserva no diu de quin país ve el visitant, així que no compta a cap país ni regió.',
+    com:'Si el codi postal deixa clar el país, escriu-lo i aplica. Si la dada és realment desconeguda, descarta-la a Revisió massiva perquè no torni a sortir.' },
+  cp_buit:      { titol:'CP buit (Espanya)',      ajuda:'Entrades espanyoles sense codi postal',
+    que:'Visitants d\'Espanya sense codi postal: compten a Espanya, però no a cap província ni comarca.',
+    com:'Si coneixes el CP, escriu-lo i aplica. Normalment no es pot recuperar: en aquest cas, descarta\'l a Revisió massiva.' },
+  cp_format:    { titol:'CP mal format',          ajuda:'El codi postal no té 5 dígits',
+    que:'El codi postal té punts, lletres, o xifres de més o de menys (p. ex. «08018.» o «178003»), i no es pot situar al mapa.',
+    com:'Escriu el CP correcte de 5 xifres i aplica. Si n\'hi ha molts, «Netejar CPs automàticament» de Revisió massiva arregla els casos clars.' },
+  provincia_no: { titol:'Província no assignada', ajuda:'CP vàlid sense província',
+    que:'El CP té 5 xifres però el prefix no correspon a cap província espanyola. Sovint és un CP francès d\'un visitant marcat com a Espanya.',
+    com:'Si surt 🇫🇷, marca\'l com a França. Si no, tria la província a mà.' },
+  comarca_no:   { titol:'Comarca no assignada',   ajuda:'CP català sense comarca',
+    que:'El CP és de Catalunya (comença per 08, 17, 25 o 43) però no és a la taula de municipis, així que no surt al mapa de comarques.',
+    com:'Aplica el suggeriment 💡 (comarca del CP real més proper) o tria-la a mà. La correcció es recorda per als mesos següents.' },
+  dup_escolar:  { titol:'Possibles duplicats escolars', ajuda:'Grups probablement comptats dues vegades',
+    que:'Una mateixa escola té, el mateix mes, la visita guiada i la del volcà Montsacopa amb el grup sencer a totes dues. Probablement s\'ha comptat el grup dues vegades.',
+    com:'Si és un error, corregeix els pax de la segona activitat (normalment s\'hauria de deixar en 1 o 2). Si realment van fer les dues visites, deixa-ho tal com està.' },
 };
 
 let catalegs = { provincies: [], comarques: [], productes: [], canals: [] };
@@ -174,7 +183,7 @@ async function carregarResum() {
     const col = document.createElement('div');
     col.className = 'col-6 col-lg-2';
     col.innerHTML = `
-      <div class="cat ${ok?'ok':'err'}" data-tipus="${tipus}">
+      <div class="cat ${ok?'ok':'err'}" data-tipus="${tipus}" title="${info.que}">
         <div class="titol">${info.titol}</div>
         <div class="num">${d.files}</div>
         <div class="pax">${ok ? 'cap cas ✓' : (dup ? '~'+nf(d.pax)+' pax en dubte' : nf(d.pax)+' pax afectats')}</div>
@@ -189,6 +198,8 @@ async function obrirDetall(tipus) {
   document.querySelectorAll('.cat').forEach(c => c.classList.toggle('actiu', c.dataset.tipus===tipus));
   document.getElementById('zonaDetall').style.display = 'block';
   document.getElementById('detallTitol').textContent = CATS[tipus].titol + ' · ' + CATS[tipus].ajuda;
+  document.getElementById('detallAjuda').innerHTML =
+    `<div><b>Què vol dir:</b> ${CATS[tipus].que}</div><div class="mt-1"><b>Com es corregeix:</b> ${CATS[tipus].com}</div>`;
 
   const files = await json('api_errors.php?accio=detall&tipus=' + tipus);
   document.getElementById('detallComptador').textContent = files.length + (tipus==='dup_escolar' ? ' casos' : ' a revisar');

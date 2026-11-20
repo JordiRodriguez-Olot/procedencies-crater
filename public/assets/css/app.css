@@ -523,3 +523,18 @@ code { font-size: .82em; }
 
 /* El menú principal no ha de trencar línia ("Gestió d'errors"). */
 .app-nav .nav-link { white-space: nowrap; }
+
+/* Ajuda contextual (src/Ajuda.php) */
+.app-ajuda { background: var(--app-superficie); border: 1px solid var(--app-vora); border-left: 4px solid var(--app-primari); border-radius: var(--app-radi); }
+.app-ajuda > summary { list-style: none; cursor: pointer; display: flex; gap: .6rem; align-items: baseline; padding: .65rem 1rem; font-size: .92rem; }
+.app-ajuda > summary::-webkit-details-marker { display: none; }
+.app-ajuda > summary .bi { color: var(--app-primari); }
+.app-ajuda-resum { flex: 1; }
+.app-ajuda-obre { color: var(--app-primari-text); font-weight: 600; font-size: .85rem; white-space: nowrap; }
+.app-ajuda-obre::after { content: " ▾"; }
+.app-ajuda[open] .app-ajuda-obre::after { content: " ▴"; }
+.app-ajuda-cos { padding: 0 1rem .9rem 2.4rem; font-size: .9rem; }
+.app-ajuda-cos ol, .app-ajuda-cos ul { margin-bottom: .5rem; padding-left: 1.1rem; }
+.app-ajuda-cos li { margin-bottom: .25rem; }
+.app-ajuda-consells { background: var(--app-fons); border-radius: .4rem; padding: .6rem .8rem; }
+.app-ajuda-consells .bi { color: #b45309; }

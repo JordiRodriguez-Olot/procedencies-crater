@@ -1,6 +1,7 @@
 <?php
 require __DIR__ . '/../config/config.php';
 require __DIR__ . '/../src/Auth.php';
+require __DIR__ . '/../src/Ajuda.php';
 Auth::requerirLogin();
 require __DIR__ . '/../src/SimpleXlsxReader.php';
 require __DIR__ . '/../src/Importer.php';
@@ -144,6 +145,8 @@ try {
 </div>
 
 <?php renderMissatges(); ?>
+
+<?php renderAjuda('import'); ?>
 
 <?php if (!$informe): ?>
   <div style="max-width:640px">

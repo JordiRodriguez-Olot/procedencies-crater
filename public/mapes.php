@@ -1,6 +1,7 @@
 <?php
 require __DIR__ . '/../config/config.php';
 require __DIR__ . '/../src/Auth.php';
+require __DIR__ . '/../src/Ajuda.php';
 Auth::requerirLogin();
 ?>
 <?php renderCapcalera('Mapes de procedència', usuariActual()); ?>
@@ -31,6 +32,8 @@ Auth::requerirLogin();
   </div>
 </div>
 
+
+<?php renderAjuda('mapes'); ?>
 
 <div class="container-fluid px-0 pb-5">
 

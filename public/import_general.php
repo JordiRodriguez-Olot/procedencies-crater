@@ -1,6 +1,7 @@
 <?php
 require __DIR__ . '/../config/config.php';
 require __DIR__ . '/../src/Auth.php';
+require __DIR__ . '/../src/Ajuda.php';
 Auth::requerirLogin();
 require __DIR__ . '/../src/SimpleXlsxReader.php';
 require __DIR__ . '/../src/ImportadorGeneral.php';
@@ -82,6 +83,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['pas'] ?? '') === 'confirma
       <a href="index.php" class="btn btn-outline-secondary btn-sm">Dashboard</a>
     </div>
   </div>
+
+  <?php renderAjuda('import_general'); ?>
 
   <p class="text-muted" style="font-size:.9rem">
     Fes servir aquesta opció quan tinguis un Excel <b>consolidat</b> amb tots els canals i períodes

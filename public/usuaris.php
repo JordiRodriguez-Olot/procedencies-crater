@@ -1,6 +1,7 @@
 <?php
 require __DIR__ . '/../config/config.php';
 require __DIR__ . '/../src/Auth.php';
+require __DIR__ . '/../src/Ajuda.php';
 Auth::requerirAdmin();
 ?>
 <?php renderCapcalera("Gestió d'usuaris", usuariActual()); ?>
@@ -25,6 +26,8 @@ Auth::requerirAdmin();
   </div>
 </div>
 
+
+<?php renderAjuda('usuaris'); ?>
 
 <div class="container-fluid px-0 pb-5">
 

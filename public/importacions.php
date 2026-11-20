@@ -1,6 +1,7 @@
 <?php
 require __DIR__ . '/../config/config.php';
 require __DIR__ . '/../src/Auth.php';
+require __DIR__ . '/../src/Ajuda.php';
 Auth::requerirLogin();
 ?>
 <?php renderCapcalera("Historial d'importacions", usuariActual()); ?>
@@ -36,6 +37,8 @@ Auth::requerirLogin();
 
 <?php renderMissatges(); ?>
 
+<?php renderAjuda('importacions'); ?>
+
 <div class="container-fluid px-0 pb-5">
   <div class="panel p-4 mb-4" id="control">
     <div class="d-flex justify-content-between align-items-start flex-wrap gap-2 mb-2">
@@ -56,6 +59,10 @@ Auth::requerirLogin();
       </table>
     </div>
     <button class="btn btn-link btn-sm px-0 mt-2" id="ctlTot" hidden>Mostrar tots els mesos</button>
+    <p class="text-muted mt-2 mb-0" style="font-size:.8rem">
+      <b>Llegenda:</b> ✓ correcte · ✕ falta importar · ⧉ el mateix fitxer pujat dos cops · ! diverses importacions al mateix mes ·
+      ↕ desviació gran respecte l'any anterior (pot ser real) · … mes en curs. Passa el ratolí per sobre d'una casella per veure'n el detall.
+    </p>
   </div>
 
   <div class="panel p-3 mb-4">

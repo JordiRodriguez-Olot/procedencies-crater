@@ -1,6 +1,7 @@
 <?php
 require __DIR__ . '/../config/config.php';
 require __DIR__ . '/../src/Auth.php';
+require __DIR__ . '/../src/Ajuda.php';
 Auth::requerirLogin();
 ?>
 <?php renderCapcalera("Informes d'activitat", usuariActual()); ?>
@@ -25,15 +26,10 @@ Auth::requerirLogin();
 </div>
 
 
+<?php renderAjuda('informes'); ?>
+
 <div class="container-fluid px-0 pb-5">
 
-  <div class="panel p-3 mb-4">
-    <p class="mb-0 text-muted" style="font-size:.9rem">
-      Tot el que s'ha canviat a l'aplicació: correccions de codis postals, entrades manuals,
-      suggeriments massius aplicats, gestió de productes i usuaris, i neteges de dades — amb qui
-      ho ha fet i quan. Útil per saber què ha passat si cal refer alguna cosa.
-    </p>
-  </div>
 
   <div class="panel p-4">
     <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">

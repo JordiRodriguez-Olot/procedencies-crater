@@ -34,13 +34,14 @@ return [
 
     // Menú principal de la capçalera. 'rol' (opcional) = rol mínim per veure'l.
     'menu' => [
-        ['url' => 'index.php',        'text' => 'Procedències'],
-        ['url' => 'mapes.php',        'text' => 'Mapes'],
-        ['url' => 'informes.php',     'text' => 'Informes'],
-        ['url' => 'importacions.php', 'text' => 'Importacions'],
-        ['url' => 'errors.php',       'text' => "Gestió d'errors"],
-        ['url' => 'productes.php',    'text' => 'Productes'],
-        ['url' => 'neteja_dades.php', 'text' => 'Neteja de dades'],
+        // 'ajuda': text que surt en passar el ratolí per sobre de l'opció del menú
+        ['url' => 'index.php',        'text' => 'Procedències',    'ajuda' => "Quants visitants i d'on, amb filtres, gràfics i comparatives"],
+        ['url' => 'mapes.php',        'text' => 'Mapes',           'ajuda' => 'Visitants sobre el mapa de comarques, províncies i països'],
+        ['url' => 'informes.php',     'text' => 'Informes',        'ajuda' => "Registre de canvis: qui ha fet què i quan"],
+        ['url' => 'importacions.php', 'text' => 'Importacions',    'ajuda' => 'Control de càrrega mensual, historial i importar fitxers de Clorian'],
+        ['url' => 'errors.php',       'text' => "Gestió d'errors", 'ajuda' => 'Corregir codis postals, països i possibles duplicats'],
+        ['url' => 'productes.php',    'text' => 'Productes',       'ajuda' => 'Agrupar els productes de Clorian per filtrar-los junts'],
+        ['url' => 'neteja_dades.php', 'text' => 'Neteja de dades', 'ajuda' => 'Esborrar dades importades per error'],
     ],
 
     'db' => [

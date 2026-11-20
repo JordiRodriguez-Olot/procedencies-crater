@@ -64,6 +64,7 @@ function renderCapcalera(string $titol, ?array $usuari = null): void
                             <li class="nav-item">
                                 <a class="nav-link<?= $item['url'] === $actual ? ' active' : '' ?>"
                                    <?= $item['url'] === $actual ? 'aria-current="page"' : '' ?>
+                                   <?= !empty($item['ajuda']) ? 'title="' . e($item['ajuda']) . '"' : '' ?>
                                    href="<?= e($item['url']) ?>"><?= e($item['text']) ?></a>
                             </li>
                         <?php endforeach; ?>

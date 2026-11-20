@@ -1,6 +1,7 @@
 <?php
 require __DIR__ . '/../config/config.php';
 require __DIR__ . '/../src/Auth.php';
+require __DIR__ . '/../src/Ajuda.php';
 Auth::requerirLogin();
 ?>
 <?php renderCapcalera('Procedències', usuariActual()); ?>
@@ -90,6 +91,8 @@ Auth::requerirLogin();
   </div>
 </div>
 
+
+<?php renderAjuda('index'); ?>
 
 <div id="avisFiltre" class="avis-filtre d-none">
   <span class="avis-icona">🔎</span>
